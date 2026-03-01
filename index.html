@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grind_OS – Academic Performance Command Center</title>
+  <meta name="description"
+    content="Grind_OS is a system-style academic performance dashboard for serious CS students." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- ══ FOCUS MODE OVERLAY ══════════════════════════════════ -->
+  <div id="focus-overlay" class="focus-overlay hidden">
+    <div class="focus-header">
+      <span class="focus-label">// FOCUS MODE :: Grind_OS </span>
+      <button id="focus-exit-btn" class="focus-exit-btn">✕ EXIT</button>
+    </div>
+    <div class="focus-body">
+      <div class="focus-mode-badge" id="focus-mode-badge">WORK SESSION</div>
+      <div class="focus-timer" id="focus-timer">25:00</div>
+      <div class="focus-session-info">Session <span id="focus-session-num">1</span> of 4</div>
+      <div class="focus-controls">
+        <button id="focus-start-btn" class="btn-focus-ctrl btn-start">▶ START</button>
+        <button id="focus-pause-btn" class="btn-focus-ctrl btn-pause hidden">⏸ PAUSE</button>
+        <button id="focus-reset-btn" class="btn-focus-ctrl btn-reset">↺ RESET</button>
+        <button id="focus-skip-btn" class="btn-focus-ctrl btn-skip">⏭ SKIP</button>
+      </div>
+      <div class="focus-settings">
+        <div class="focus-setting-group">
+          <label>Work</label>
+          <button class="pomodoro-adj" id="work-dec">−</button>
+          <span id="work-min-display">25</span> min
+          <button class="pomodoro-adj" id="work-inc">+</button>
+        </div>
+        <div class="focus-setting-group">
+          <label>Break</label>
+          <button class="pomodoro-adj" id="break-dec">−</button>
+          <span id="break-min-display">5</span> min
+          <button class="pomodoro-adj" id="break-inc">+</button>
+        </div>
+      </div>
+      <div class="focus-progress-bar-wrap">
+        <div class="focus-progress-bar" id="focus-progress-bar"></div>
+      </div>
+      <div class="focus-notes-wrap">
+        <div class="focus-notes-label">// SESSION NOTES</div>
+        <textarea id="focus-notes" class="focus-notes-input" rows="2" placeholder="What are you working on?"></textarea>
+      </div>
+      <div class="focus-rating-wrap">
+        <span>SESSION RATING:</span>
+        <button class="star-btn" data-star="1">★</button>
+        <button class="star-btn" data-star="2">★</button>
+        <button class="star-btn" data-star="3">★</button>
+        <button class="star-btn" data-star="4">★</button>
+        <button class="star-btn" data-star="5">★</button>
+      </div>
+      <div class="focus-log-label">// RECENT SESSIONS</div>
+      <div class="focus-session-log" id="focus-session-log"><span class="focus-log-empty">No sessions yet.</span></div>
+    </div>
+  </div>
+
+  <!-- ══ APP SHELL ══════════════════════════════════════════ -->
+  <div class="app-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">GB</div>
+        <div class="brand-text">
+          <span class="brand-name">Grind_OS</span>
+          <span class="brand-sub">v2.0 :: OS</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-panel="dashboard"><span class="nav-icon">⊞</span><span
+            class="nav-label">Dashboard</span></a>
+        <a href="#" class="nav-item" data-panel="study"><span class="nav-icon">📚</span><span class="nav-label">Study
+            Tracker</span></a>
+        <a href="#" class="nav-item" data-panel="streak"><span class="nav-icon">⚡</span><span class="nav-label">Coding
+            Streak</span></a>
+        <a href="#" class="nav-item" data-panel="subjects"><span class="nav-icon">🧠</span><span
+            class="nav-label">Subjects & Mastery</span></a>
+        <a href="#" class="nav-item" data-panel="focus"><span class="nav-icon">🎯</span><span class="nav-label">Focus
+            Mode</span></a>
+        <a href="#" class="nav-item" data-panel="journal"><span class="nav-icon">📝</span><span
+            class="nav-label">Mistake Journal</span></a>
+        <a href="#" class="nav-item" data-panel="analytics"><span class="nav-icon">📊</span><span
+            class="nav-label">Analytics</span></a>
+        <a href="#" class="nav-item" data-panel="settings"><span class="nav-icon">⚙</span><span
+            class="nav-label">Settings</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-date" id="sidebar-date"></div>
+        <button class="btn-reset-data" id="btn-reset-data">⚠ Reset Data</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+          <div class="topbar-breadcrumb" id="topbar-breadcrumb">/ dashboard</div>
+        </div>
+        <div class="topbar-right">
+          <div class="topbar-score-mini">
+            <span class="score-mini-label">POWER</span>
+            <span class="score-mini-value" id="topbar-score">--</span>
+            <span class="score-mini-label">/100</span>
+          </div>
+          <div class="topbar-time" id="topbar-time"></div>
+          <div class="profile-chip">
+            <div class="profile-avatar" id="profile-avatar-top">G</div>
+            <span class="profile-name" id="profile-name-chip">Grind_OS</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ══ PANEL: DASHBOARD ════════════════════════════════ -->
+      <section class="panel active" id="panel-dashboard">
+        <!-- GREETING HERO -->
+        <div class="greeting-hero">
+          <div class="greeting-left">
+            <div class="greeting-status">
+              <div class="status-dot"></div>SYSTEM READY
+            </div>
+            <div class="greeting-title" id="greeting-title">Ready to grind, <span id="greeting-name">Grind_OS</span>?
+            </div>
+            <div class="greeting-subtitle" id="greeting-subtitle">Keep pushing. Consistency beats talent.</div>
+          </div>
+          <div class="greeting-score-wrap">
+            <div class="greeting-score-num" id="greeting-score-num">0</div>
+            <div class="greeting-score-label">ACADEMIC POWER SCORE</div>
+            <div class="greeting-score-badge" id="greeting-score-badge">BEGINNER</div>
+          </div>
+        </div>
+
+        <!-- DAILY STATUS ROW -->
+        <div class="daily-status-row" id="daily-status-row">
+          <div class="daily-status-card c-green">
+            <div class="dsc-icon">⏱</div>
+            <div class="dsc-body">
+              <div class="dsc-val" id="dsc-today-hours">0h</div>
+              <div class="dsc-lbl">Today's Study</div>
+            </div>
+          </div>
+          <div class="daily-status-card c-blue">
+            <div class="dsc-icon">⚡</div>
+            <div class="dsc-body">
+              <div class="dsc-val" id="dsc-streak">0</div>
+              <div class="dsc-lbl">Day Streak</div>
+            </div>
+          </div>
+          <div class="daily-status-card c-purple">
+            <div class="dsc-icon">🧠</div>
+            <div class="dsc-body">
+              <div class="dsc-val" id="dsc-mastery">0%</div>
+              <div class="dsc-lbl">Avg Mastery</div>
+            </div>
+          </div>
+          <div class="daily-status-card c-yellow">
+            <div class="dsc-icon">🎯</div>
+            <div class="dsc-body">
+              <div class="dsc-val" id="dsc-focus">0</div>
+              <div class="dsc-lbl">Focus Sessions</div>
+            </div>
+          </div>
+          <div class="daily-status-card c-orange">
+            <div class="dsc-icon">⚠</div>
+            <div class="dsc-body">
+              <div class="dsc-val" id="dsc-weak">—</div>
+              <div class="dsc-lbl">Weakest Subject</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- POWER SCORE WIDGET -->
+        <div class="power-score-hero">
+          <div class="score-ring-wrap">
+            <svg class="score-ring" viewBox="0 0 200 200">
+              <circle class="ring-bg" cx="100" cy="100" r="85" />
+              <circle class="ring-fill" id="ring-fill" cx="100" cy="100" r="85" stroke-dasharray="534"
+                stroke-dashoffset="534" />
+            </svg>
+            <div class="score-ring-inner">
+              <div class="score-num" id="score-num">0</div>
+              <div class="score-denom">/100</div>
+              <div class="score-badge" id="score-badge">BEGINNER</div>
+            </div>
+          </div>
+          <div class="score-breakdown">
+            <h3 class="breakdown-title">// POWER SCORE BREAKDOWN</h3>
+            <div class="breakdown-row"><span class="br-label">Study Hours</span>
+              <div class="br-bar-wrap">
+                <div class="br-bar" id="br-study"></div>
+              </div><span class="br-pts" id="br-pts-study">0</span>
+            </div>
+            <div class="breakdown-row"><span class="br-label">Code Streak</span>
+              <div class="br-bar-wrap">
+                <div class="br-bar" id="br-streak"></div>
+              </div><span class="br-pts" id="br-pts-streak">0</span>
+            </div>
+            <div class="breakdown-row"><span class="br-label">Topic Mastery</span>
+              <div class="br-bar-wrap">
+                <div class="br-bar" id="br-mastery"></div>
+              </div><span class="br-pts" id="br-pts-mastery">0</span>
+            </div>
+            <div class="breakdown-row"><span class="br-label">Focus Sessions</span>
+              <div class="br-bar-wrap">
+                <div class="br-bar" id="br-focus"></div>
+              </div><span class="br-pts" id="br-pts-focus">0</span>
+            </div>
+            <div class="breakdown-row"><span class="br-label">Project Progress</span>
+              <div class="br-bar-wrap">
+                <div class="br-bar" id="br-project"></div>
+              </div><span class="br-pts" id="br-pts-project">0</span>
+            </div>
+            <div class="project-progress-row">
+              <label>Project %</label>
+              <input type="range" id="project-progress-slider" min="0" max="100" value="0" class="slider" />
+              <span id="project-progress-val">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STAT CARDS -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">📚</div>
+            <div class="stat-body">
+              <div class="stat-value" id="stat-val-study">0h</div>
+              <div class="stat-label">Total Study Hours</div>
+            </div>
+            <div class="stat-trend up" id="stat-trend-study">+0h today</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-body">
+              <div class="stat-value" id="stat-val-streak">0</div>
+              <div class="stat-label">Day Code Streak</div>
+            </div>
+            <div class="stat-trend" id="stat-trend-streak">Longest: 0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🧠</div>
+            <div class="stat-body">
+              <div class="stat-value" id="stat-val-mastery">0%</div>
+              <div class="stat-label">Avg Mastery</div>
+            </div>
+            <div class="stat-trend">5 subjects</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-body">
+              <div class="stat-value" id="stat-val-focus">0</div>
+              <div class="stat-label">Focus Sessions</div>
+            </div>
+            <div class="stat-trend">Pomodoros done</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🔍</div>
+            <div class="stat-body">
+              <div class="stat-value" id="stat-val-mistakes">0</div>
+              <div class="stat-label">Mistakes Logged</div>
+            </div>
+            <div class="stat-trend">Reviewed &amp; corrected</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🚀</div>
+            <div class="stat-body">
+              <div class="stat-value" id="stat-val-project">0%</div>
+              <div class="stat-label">Project Progress</div>
+            </div>
+            <div class="stat-progress-bar">
+              <div class="stat-pb" id="stat-pb-project"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUICK LOG -->
+        <div class="quick-log-card">
+          <h3 class="section-title">// QUICK STUDY LOG</h3>
+          <div class="quick-log-form">
+            <select id="ql-subject" class="select-input">
+              <option value="DSA">DSA</option>
+              <option value="OS">OS</option>
+              <option value="CN">CN</option>
+              <option value="DBMS">DBMS</option>
+              <option value="DiscreteMaths">Discrete Maths</option>
+              <option value="Other">Other</option>
+            </select>
+            <input type="number" id="ql-hours" class="text-input" placeholder="Hours" min="0.25" max="24" step="0.25" />
+            <input type="text" id="ql-note" class="text-input" placeholder="Note (optional)" />
+            <button class="btn-primary" id="btn-quick-log">+ LOG</button>
+          </div>
+          <div class="recent-log-list" id="recent-log-list">
+            <div class="empty-state">No logs yet. Start tracking! 🚀</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ PANEL: STUDY TRACKER ════════════════════════════ -->
+      <section class="panel" id="panel-study">
+        <div class="panel-header">
+          <h1 class="panel-title">Study Tracker <span class="title-tag">// HOURS LOG</span></h1>
+        </div>
+        <div class="study-layout">
+          <div class="card">
+            <h3 class="card-title">// DAILY STUDY HOURS (LAST 14 DAYS)</h3>
+            <div class="chart-wrap"><canvas id="chart-study-bar"></canvas></div>
+          </div>
+          <div class="card">
+            <h3 class="card-title">// SUBJECT BREAKDOWN</h3>
+            <div class="subject-bars" id="subject-bars"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header-row">
+            <h3 class="card-title">// STUDY LOG HISTORY</h3>
+            <select id="log-filter-subject" class="select-input-sm">
+              <option value="all">All Subjects</option>
+              <option value="DSA">DSA</option>
+              <option value="OS">OS</option>
+              <option value="CN">CN</option>
+              <option value="DBMS">DBMS</option>
+              <option value="DiscreteMaths">Discrete Maths</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="log-table-wrap">
+            <table class="log-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Subject</th>
+                  <th>Hours</th>
+                  <th>Note</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="study-log-tbody">
+                <tr>
+                  <td colspan="5" class="empty-cell">No study logs yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ PANEL: CODING STREAK ════════════════════════════ -->
+      <section class="panel" id="panel-streak">
+        <div class="panel-header">
+          <h1 class="panel-title">Coding Streak <span class="title-tag">// CONSISTENCY MATRIX</span></h1>
+          <div class="panel-actions"><button class="btn-primary" id="btn-coded-today">✔ Coded Today</button></div>
+        </div>
+        <div class="streak-hero-row">
+          <div class="streak-stat-big">
+            <div class="streak-num" id="streak-current">0</div>
+            <div class="streak-sub">Current Streak 🔥</div>
+          </div>
+          <div class="streak-stat-big">
+            <div class="streak-num streak-alt" id="streak-longest">0</div>
+            <div class="streak-sub">Longest Streak 🏆</div>
+          </div>
+          <div class="streak-stat-big">
+            <div class="streak-num streak-alt2" id="streak-total-days">0</div>
+            <div class="streak-sub">Total Days Coded</div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="card-title">// ACTIVITY GRID (LAST 52 WEEKS)</h3>
+          <div class="streak-month-labels" id="streak-month-labels"></div>
+          <div class="streak-grid-wrap">
+            <div class="streak-day-labels"><span>Mon</span><span>Wed</span><span>Fri</span></div>
+            <div class="streak-grid" id="streak-grid"></div>
+          </div>
+          <div class="streak-legend"><span>Less</span>
+            <div class="legend-cell lc-0"></div>
+            <div class="legend-cell lc-1"></div>
+            <div class="legend-cell lc-2"></div>
+            <div class="legend-cell lc-3"></div>
+            <div class="legend-cell lc-4"></div><span>More</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ PANEL: SUBJECTS & MASTERY ══════════════════════ -->
+      <section class="panel" id="panel-subjects">
+        <div class="panel-header">
+          <h1 class="panel-title">Subjects &amp; Mastery <span class="title-tag">// WEAKNESS DETECTION</span></h1>
+          <div class="panel-actions"><span class="hint-text">Click topics to cycle: Weak → Avg → Strong</span></div>
+        </div>
+        <div class="heatmap-legend-row">
+          <div class="hm-legend-item">
+            <div class="hm-dot hm-weak"></div> Weak (0–40)
+          </div>
+          <div class="hm-legend-item">
+            <div class="hm-dot hm-avg"></div> Average (41–70)
+          </div>
+          <div class="hm-legend-item">
+            <div class="hm-dot hm-strong"></div> Strong (71–100)
+          </div>
+        </div>
+        <div class="subjects-grid" id="subjects-grid"></div>
+        <div class="card mastery-sliders-card">
+          <h3 class="card-title">// FINE-TUNE MASTERY LEVELS</h3>
+          <div id="mastery-sliders-wrap"></div>
+        </div>
+      </section>
+
+      <!-- ══ PANEL: FOCUS MODE ═══════════════════════════════ -->
+      <section class="panel" id="panel-focus">
+        <div class="panel-header">
+          <h1 class="panel-title">Focus Mode <span class="title-tag"></span></h1>
+        </div>
+        <div class="focus-launcher-wrap">
+          <div class="focus-launcher-card">
+            <div class="focus-launcher-icon">🎯</div>
+            <h2 class="focus-launcher-title">Enter Deep Focus</h2>
+            <p class="focus-launcher-desc">Full-screen. Minimal. Zero distractions.<br />25 / 50 min Pomodoro. Session
+              notes. Rating.</p>
+            <div class="focus-launcher-stats">
+              <div class="fl-stat"><span class="fl-num" id="fl-sessions">0</span><span class="fl-lbl">Sessions
+                  Done</span></div>
+              <div class="fl-stat"><span class="fl-num" id="fl-total-min">0</span><span class="fl-lbl">Total
+                  Minutes</span></div>
+              <div class="fl-stat"><span class="fl-num" id="fl-today-sessions">0</span><span class="fl-lbl">Today's
+                  Sessions</span></div>
+            </div>
+            <button class="btn-launch-focus" id="btn-launch-focus">⚡ LAUNCH FOCUS MODE</button>
+          </div>
+          <div class="card focus-recents">
+            <h3 class="card-title">// RECENT SESSIONS</h3>
+            <div id="focus-history-list">
+              <div class="empty-state">No sessions logged yet.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ PANEL: MISTAKE JOURNAL ══════════════════════════ -->
+      <section class="panel" id="panel-journal">
+        <div class="panel-header">
+          <h1 class="panel-title">Mistake Journal <span class="title-tag">// ERROR LOG</span></h1>
+          <div class="panel-actions"><button class="btn-primary" id="btn-new-mistake">+ New Entry</button></div>
+        </div>
+        <div class="card mistake-form-card hidden" id="mistake-form-card">
+          <h3 class="card-title">// LOG A MISTAKE</h3>
+          <div class="mistake-form-grid">
+            <div class="form-group"><label class="form-label">Subject</label><select id="mj-subject"
+                class="select-input">
+                <option value="DSA">DSA</option>
+                <option value="OS">OS</option>
+                <option value="CN">CN</option>
+                <option value="DBMS">DBMS</option>
+                <option value="DiscreteMaths">Discrete Maths</option>
+                <option value="Other">Other</option>
+              </select></div>
+            <div class="form-group"><label class="form-label">Topic</label><input type="text" id="mj-topic"
+                class="text-input" placeholder="e.g. BFS, Deadlocks" /></div>
+            <div class="form-group full-width"><label class="form-label">Mistake Description</label><textarea
+                id="mj-desc" class="textarea-input" rows="2" placeholder="What went wrong?"></textarea></div>
+            <div class="form-group"><label class="form-label">Why It Happened</label><textarea id="mj-root"
+                class="textarea-input" rows="2" placeholder="Root cause…"></textarea></div>
+            <div class="form-group"><label class="form-label">Correct Solution</label><textarea id="mj-correction"
+                class="textarea-input" rows="2" placeholder="Right approach…"></textarea></div>
+            <div class="form-group full-width"><label class="form-label">Prevention Rule</label><input type="text"
+                id="mj-rule" class="text-input" placeholder="e.g. Always check edge cases first" /></div>
+            <div class="form-group full-width">
+              <div class="confidence-row">
+                <span class="conf-label">CONFIDENCE LEVEL:</span>
+                <button class="conf-star" data-conf="1">★</button>
+                <button class="conf-star" data-conf="2">★</button>
+                <button class="conf-star" data-conf="3">★</button>
+                <button class="conf-star" data-conf="4">★</button>
+                <button class="conf-star" data-conf="5">★</button>
+                <span class="hint-text" id="conf-label-text">Not set</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" id="btn-save-mistake">💾 Save Entry</button>
+            <button class="btn-ghost" id="btn-cancel-mistake">Cancel</button>
+          </div>
+        </div>
+        <div class="mistake-filter-row">
+          <select id="mj-filter" class="select-input-sm">
+            <option value="all">All Subjects</option>
+            <option value="DSA">DSA</option>
+            <option value="OS">OS</option>
+            <option value="CN">CN</option>
+            <option value="DBMS">DBMS</option>
+            <option value="DiscreteMaths">Discrete Maths</option>
+            <option value="Other">Other</option>
+          </select>
+          <input type="text" id="mj-search" class="text-input-sm" placeholder="Search entries…" />
+        </div>
+        <!-- RECURRING MISTAKES -->
+        <div class="recurring-section" id="recurring-section" style="display:none">
+          <h3 class="section-title">// RECURRING MISTAKES HOTSPOTS</h3>
+          <div class="recurring-grid" id="recurring-grid"></div>
+        </div>
+        <div style="margin-top:16px">
+          <div class="mistake-entries" id="mistake-entries">
+            <div class="empty-state">No mistakes logged yet. That's suspicious… 👀</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ PANEL: ANALYTICS ════════════════════════════════ -->
+      <section class="panel" id="panel-analytics">
+        <div class="panel-header">
+          <h1 class="panel-title">Analytics <span class="title-tag">// PERFORMANCE INTEL</span></h1>
+        </div>
+        <div class="analytics-grid">
+          <div class="card analytics-card-wide">
+            <h3 class="card-title">// SELF-COMPETITION GRAPH</h3>
+            <p class="card-sub">You vs. your past self (daily study hours)</p>
+            <div class="chart-wrap chart-wrap-lg"><canvas id="chart-competition"></canvas></div>
+          </div>
+          <div class="card">
+            <h3 class="card-title">// TOPIC MASTERY RADAR</h3>
+            <div class="chart-wrap"><canvas id="chart-radar"></canvas></div>
+          </div>
+          <div class="card">
+            <h3 class="card-title">// POWER SCORE HISTORY</h3>
+            <div class="chart-wrap"><canvas id="chart-score-history"></canvas></div>
+          </div>
+          <div class="card analytics-card-wide">
+            <h3 class="card-title">// WEEKLY TREND COMPARISON</h3>
+            <p class="card-sub">Last 7 days daily study hours</p>
+            <div class="weekly-trend-row" id="weekly-trend-row"></div>
+          </div>
+          <div class="card analytics-card-wide">
+            <h3 class="card-title">// STUDY TIME BY SUBJECT</h3>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center">
+              <div class="chart-wrap chart-wrap-sm" style="width:180px"><canvas id="chart-subject-doughnut"></canvas>
+              </div>
+              <div class="subject-legend" id="subject-legend"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ PANEL: SETTINGS ═════════════════════════════════ -->
+      <section class="panel" id="panel-settings">
+        <div class="panel-header">
+          <h1 class="panel-title">Settings <span class="title-tag">// SYSTEM CONFIG</span></h1>
+        </div>
+        <div class="settings-layout">
+          <div class="settings-section">
+            <div class="card">
+              <h3 class="card-title">// PROFILE</h3>
+              <div class="settings-group">
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label">Display Name</div>
+                  </div>
+                  <input type="text" id="settings-name" class="text-input" style="width:160px"
+                    placeholder="Your name" />
+                </div>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label">Target Score</div>
+                    <div class="settings-row-desc">Your goal power score (0–100)</div>
+                  </div>
+                  <input type="number" id="settings-target" class="text-input" style="width:80px" min="1" max="100"
+                    value="80" />
+                </div>
+                <div style="padding-top:8px"><button class="btn-primary" id="btn-save-settings" style="width:100%">💾
+                    Save Profile</button></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="card-title">// STUDY GOALS</h3>
+              <div class="settings-group">
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label">Daily Study Goal (hrs)</div>
+                  </div>
+                  <input type="number" id="settings-daily-goal" class="text-input" style="width:80px" min="0.5" max="16"
+                    step="0.5" value="4" />
+                </div>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label">Streak Goal (days)</div>
+                  </div>
+                  <input type="number" id="settings-streak-goal" class="text-input" style="width:80px" min="1" max="365"
+                    value="30" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="card score-formula-card" style="grid-column:unset">
+              <h3 class="card-title">// POWER SCORE ALGORITHM</h3>
+              <div class="formula-box">
+                <span>// Score = weighted sum, range 0–100</span><br />
+                S = Study Hours (max 200h → <span>30 pts</span>)<br />
+                C = Code Streak (max 30d → <span>20 pts</span>)<br />
+                M = Avg Mastery % → <span>20 pts</span><br />
+                F = Focus Sessions (max 50 → <span>15 pts</span>)<br />
+                P = Project % → <span>15 pts</span><br /><br />
+                <span class="formula-total">Score = min(S+C+M+F+P, 100)</span>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="card-title">// TECH STACK</h3>
+              <div class="tech-stack-grid">
+                <div class="tech-card">
+                  <div class="tech-icon">🌐</div>
+                  <div class="tech-name">HTML5</div>
+                  <div class="tech-role">Shell</div>
+                </div>
+                <div class="tech-card">
+                  <div class="tech-icon">🎨</div>
+                  <div class="tech-name">CSS3</div>
+                  <div class="tech-role">Design OS</div>
+                </div>
+                <div class="tech-card">
+                  <div class="tech-icon">⚙</div>
+                  <div class="tech-name">Vanilla JS</div>
+                  <div class="tech-role">App Logic</div>
+                </div>
+                <div class="tech-card">
+                  <div class="tech-icon">📊</div>
+                  <div class="tech-name">Chart.js</div>
+                  <div class="tech-role">Analytics</div>
+                </div>
+                <div class="tech-card">
+                  <div class="tech-icon">💾</div>
+                  <div class="tech-name">localStorage</div>
+                  <div class="tech-role">Persistence</div>
+                </div>
+                <div class="tech-card">
+                  <div class="tech-icon">🔤</div>
+                  <div class="tech-name">JetBrains Mono</div>
+                  <div class="tech-role">Monospace</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="grid-column:1/-1">
+            <h3 class="card-title">// MVP ROADMAP</h3>
+            <div class="roadmap-wrap">
+              <div class="roadmap-phase">
+                <div class="phase-dot done"></div>
+                <div>
+                  <div class="phase-name">Phase 1 – Core ✓</div>
+                  <div class="phase-items">Auth · Study Tracking · Power Score · Dashboard</div>
+                </div>
+              </div>
+              <div class="roadmap-phase">
+                <div class="phase-dot active"></div>
+                <div>
+                  <div class="phase-name">Phase 2 – Intelligence ◉</div>
+                  <div class="phase-items">Mistake Journal · Analytics Graphs · Weakness Heatmap · Self-Competition
+                  </div>
+                </div>
+              </div>
+              <div class="roadmap-phase">
+                <div class="phase-dot future"></div>
+                <div>
+                  <div class="phase-name">Phase 3 – Advanced ○</div>
+                  <div class="phase-items">Focus Mode Pro · AI Weakness Predictions · Smart Recommendations · Resume
+                    Export</div>
+                </div>
+              </div>
+              <div class="roadmap-phase">
+                <div class="phase-dot future"></div>
+                <div>
+                  <div class="phase-name">Phase 4 – Scale ○</div>
+                  <div class="phase-items">Mobile App · Offline Mode · Backend API · MongoDB Atlas · JWT Auth</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+
+</html>
