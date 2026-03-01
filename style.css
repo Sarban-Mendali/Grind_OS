@@ -2644,3 +2644,95 @@ body {
 .toast.error {
     border-left-color: var(--g6)
 }
+/* ══ MOBILE RESPONSIVENESS ══════════════════════════════════ */
+@media (max-width: 850px) {
+    .app-container {
+        flex-direction: column;
+    }
+
+    /* 1. Sidebar becomes a Header/Drawer */
+    .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 15px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(13, 17, 23, 0.95);
+        backdrop-filter: blur(10px);
+    }
+
+    .sidebar-nav {
+        display: none; /* Hide nav by default, show via toggle */
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: var(--bg-card);
+        flex-direction: column;
+        padding: 10px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-nav.active {
+        display: flex;
+    }
+
+    .sidebar-footer {
+        display: none; /* Hide reset/settings on mobile nav for space */
+    }
+
+    .logo-area {
+        margin-bottom: 0;
+    }
+
+    /* 2. Main Content Spacing */
+    .main-content {
+        padding: 15px;
+    }
+
+    .header-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    /* 3. Dashboard Grid Stacking */
+    .dashboard-grid {
+        grid-template-columns: 1fr; /* Force single column */
+    }
+
+    .card-large {
+        grid-column: span 1;
+    }
+
+    /* 4. Chart Resizing */
+    canvas {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    /* 5. Subject Grid */
+    .subject-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* 6. Focus Mode Overlay */
+    .focus-timer {
+        font-size: 5rem;
+    }
+
+    .focus-controls {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-focus {
+        width: 100%;
+    }
+}
