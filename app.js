@@ -717,3 +717,4 @@ function init() {
   showPanel('dashboard');
 }
 document.addEventListener('DOMContentLoaded', init);
+
