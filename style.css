@@ -1,108 +1,42 @@
-/* ... [Keep all your existing CSS above] ... */
+/* ... [Include your base styles here] ... */
 
-/* ══ MOBILE RESPONSIVENESS (CORRECTED) ═════════════════════ */
-@media (max-width: 900px) {
-    .app-shell {
-        flex-direction: column;
-    }
+:root {
+    --g1: #00ff87; --g2: #00cfff; --g3: #bf5fff;
+    --bg-900: #0d1117; --bg-800: #161b22; --border: #30363d;
+    --t1: #ffffff; --t2: #8b949e;
+}
 
-    /* Transform Sidebar into Header */
-    .sidebar {
-        width: 100%;
-        min-width: 100%;
-        height: auto;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0 15px;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-        position: sticky;
-        top: 0;
-        background: var(--bg-900);
-        z-index: 1000;
-    }
+body { background: var(--bg-900); color: var(--t1); font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
 
-    .sidebar-brand {
-        border-bottom: none;
-        padding: 10px 0;
-    }
+.app-shell { display: flex; height: 100vh; }
 
-    /* Hide nav by default on mobile */
-    .sidebar-nav {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 100%;
-        background: var(--bg-800);
-        flex-direction: column;
-        padding: 10px;
-        border-bottom: 1px solid var(--border);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-    }
+.sidebar { width: 260px; background: var(--bg-800); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+.sidebar-brand { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+.nav-item { padding: 12px 20px; text-decoration: none; color: var(--t2); display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+.nav-item.active { color: var(--g1); background: rgba(0,255,135,0.05); }
 
-    /* Show nav when active class is added via JS */
-    .sidebar-nav.active {
-        display: flex;
-    }
+.main-content { flex: 1; overflow-y: auto; padding: 20px; }
+.panel { display: none; }
+.panel.active { display: block; }
 
-    .sidebar-footer {
-        display: none; /* Hide on mobile menu for space */
-    }
+.card { background: var(--bg-800); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
 
-    /* Main Content Spacing */
-    .main-content {
-        height: auto;
-        overflow-y: visible;
-        padding-bottom: 50px;
-    }
+.subject-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.topic-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+.topic-pill { background: transparent; border: 1px solid var(--border); color: var(--t2); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+.topic-pill.active { background: var(--g2); color: #000; border-color: var(--g2); }
 
-    .topbar {
-        display: none; /* Sidebar-as-header replaces this on mobile */
-    }
+/* ══ MOBILE ══════════════════════════════════════════════ */
+@media (max-width: 850px) {
+    .app-shell { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: sticky; top: 0; z-index: 100; }
+    .sidebar-nav { display: none; flex-direction: column; }
+    .sidebar-nav.active { display: flex; }
+    .mobile-toggle { display: block; background: none; border: 1px solid var(--border); color: #fff; padding: 5px 10px; cursor: pointer; }
+    .dashboard-grid, .subject-grid { grid-template-columns: 1fr; }
+}
 
-    /* Force Grid Stacking */
-    .dashboard-grid, .analytics-grid, .subject-grid, .settings-grid {
-        grid-template-columns: 1fr !important;
-    }
-
-    .card-large {
-        grid-column: span 1 !important;
-    }
-
-    /* Responsive Charts */
-    .chart-container {
-        height: 250px;
-    }
-
-    canvas {
-        max-width: 100% !important;
-    }
-
-    /* Greeting Hero Reflow */
-    .greeting-hero {
-        flex-direction: column;
-        gap: 20px;
-        text-align: center;
-    }
-
-    .greeting-left {
-        align-items: center;
-    }
-
-    .daily-status-row {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .daily-status-card {
-        width: calc(50% - 10px);
-        min-width: 140px;
-    }
-
-    /* Subject Mastery UI */
-    .topic-pills {
-        justify-content: center;
-    }
+@media (min-width: 851px) {
+    .mobile-toggle { display: none; }
 }
